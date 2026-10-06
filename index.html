@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pointage Serre</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2.2">
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app" class="app-container">
+        
+        <!-- =======================
+             LOGIN VIEW
+        ======================== -->
+        <section id="view-login" class="view active">
+            <div class="login-wrapper glass-panel">
+                <div class="login-header">
+                    <img src="dj.png" alt="Desert Joy Logo" class="company-logo">
+                    <h1>Système de Pointage</h1>
+                    <div class="greenhouse-badge">
+                        <span class="greenhouse-name">🌿 Serre</span>
+                    </div>
+                    <p>Sélectionnez votre profil pour commencer</p>
+                </div>
+                
+                <div class="login-actions">
+                    <button class="btn-supervisor ripple" data-supervisor="1" id="btn-sup-1">
+                        <span class="icon">👤</span> <span id="label-sup-1">Supervisor 1</span>
+                    </button>
+                    <button class="btn-supervisor ripple" data-supervisor="2" id="btn-sup-2">
+                        <span class="icon">👤</span> <span id="label-sup-2">Supervisor 2</span>
+                    </button>
+                </div>
+                
+                <div class="login-footer">
+                    <button id="btn-goto-admin" class="btn-text">Accès Administrateur</button>
+                    <div style="margin-top:10px; font-size:0.75rem; color:#94a3b8; font-weight:600;">v2.3 • Serre • Auto Sync</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =======================
+             DASHBOARD VIEW
+        ======================== -->
+        <section id="view-dashboard" class="view">
+            <header class="app-header glass-header">
+                <div class="header-left">
+                    <span class="avatar" id="current-user-avatar">S1</span>
+                    <div class="user-info">
+                        <span class="user-name" id="current-user-name">Supervisor 1</span>
+                        <span class="header-action" id="btn-logout">Changer d'utilisateur</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <span id="network-badge" class="network-badge online" title="Cliquez pour synchroniser les données">🟢 En ligne</span>
+                    <button id="btn-dashboard-admin" class="btn-admin-icon" aria-label="Admin">⚙️</button>
+                </div>
+            </header>
+
+            <!-- Dashboard Navigation Tabs -->
+            <div class="dashboard-tabs">
+                <button id="tab-btn-map" class="tab-btn active">
+                    <span>🗺️</span> Pointage Serre
+                </button>
+                <button id="tab-btn-trolleys" class="tab-btn">
+                    <span>🛺</span> Suivi Chariots (42 Trolleys)
+                </button>
+            </div>
+
+            <main class="dashboard-content">
+                <!-- ==================== TAB 1: POINTAGE MAP ==================== -->
+                <div id="tab-content-map" class="tab-content active">
+                    <!-- Banner Alerte Chariots à Charger Aujourd'hui -->
+                    <div id="today-charge-alert" class="today-charge-alert-card glass-panel">
+                        <div class="today-charge-header">
+                            <div class="today-charge-title-wrap">
+                                <span class="today-charge-icon">⚡</span>
+                                <div>
+                                    <h3 class="today-charge-title">Planning Charge — <span id="today-day-name">Aujourd'hui</span></h3>
+                                    <p class="today-charge-sub" id="today-charge-summary">Calcul des chariots à charger...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="today-charge-chips" id="today-charge-chips">
+                            <!-- Populated in JS: e.g. Chariot N°5 (Chargeur N°2) -->
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="controls-card glass-panel">
+                        <div class="input-group">
+                            <label for="period-mode-select">Mode Période</label>
+                            <select id="period-mode-select" class="custom-select">
+                                <option value="1w">1 Semaine</option>
+                                <option value="2w" selected>2 Semaines (Bi-hebdo)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="week-select">Semaine / Période</label>
+                            <select id="week-select" class="custom-select">
+                                <!-- Populated in JS -->
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="task-select">Tâche de Contrôle</label>
+                            <select id="task-select" class="custom-select">
+                                <option value="control twisting">1. control twisting</option>
+                                <option value="control pruning">2. control pruning</option>
+                                <option value="control blad">3. control blad</option>
+                                <option value="control harvest">4. control harvest</option>
+                                <option value="control zakken">5. control zakken</option>
+                                <option value="control botrytis">6. control botrytis</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Progress Section -->
+                    <div class="progress-section">
+                        <div class="progress-header">
+                            <h2>Progression Globale</h2>
+                            <span class="progress-text"><span id="progress-count">0</span> / <span id="progress-total">280</span> paths</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" id="main-progress"></div>
+                        </div>
+                    </div>
+
+                    <!-- Unified Greenhouse Map View -->
+                    <div class="greenhouse-map-wrapper">
+                        <div class="map-stats-header">
+                            <div class="grid-stats">Côté Gauche: <span id="gauche-count">0</span></div>
+                            <div class="grid-stats">Côté Droit: <span id="droit-count">0</span></div>
+                        </div>
+
+                        <div class="greenhouse-map">
+                            <!-- Gauche -->
+                            <div class="map-side" id="grid-gauche">
+                                <!-- Generated via JS -->
+                            </div>
+                            
+                            <!-- Corridor Central -->
+                            <div class="map-corridor"></div>
+
+                            <!-- Droite -->
+                            <div class="map-side" id="grid-droit">
+                                <!-- Generated via JS -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section glass-panel">
+                        <label for="remarks-input">Remarques & Incidents</label>
+                        <textarea id="remarks-input" placeholder="Ajouter une note..." rows="3"></textarea>
+                    </div>
+
+                    <div class="floating-action-bar">
+                        <button id="btn-save-pointage" class="btn-primary ripple">
+                            Enregistrer le Pointage
+                            <span class="btn-loader"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ==================== TAB 2: SUIVI 42 CHARIOTS ==================== -->
+                <div id="tab-content-trolleys" class="tab-content">
+                    <!-- Trolley Header KPI Cards -->
+                    <div class="trolley-kpi-grid">
+                        <div class="kpi-card glass-panel">
+                            <div class="kpi-icon">🛺</div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Total Chariots</span>
+                                <span class="kpi-value" id="kpi-total-trolleys">42</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card glass-panel">
+                            <div class="kpi-icon">📌</div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Pins Affectés</span>
+                                <span class="kpi-value" id="kpi-pins-assigned">0</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card glass-panel">
+                            <div class="kpi-icon">🔍</div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Pins Trouvés</span>
+                                <span class="kpi-value" id="kpi-pins-found">0</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card glass-panel warning-kpi" id="kpi-missing-wrap">
+                            <div class="kpi-icon">⚠️</div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Pins Oubliés</span>
+                                <span class="kpi-value" id="kpi-pins-missing">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trolley Toolbar Controls -->
+                    <div class="trolley-toolbar glass-panel">
+                        <div class="trolley-search-wrap">
+                            <input type="text" id="trolley-search-input" class="custom-input" placeholder="🔍 Rechercher chariot N° ou ouvrier...">
+                        </div>
+                        <div class="trolley-actions-right">
+                            <button id="btn-filter-missing" class="btn-secondary filter-btn">⚠️ Pins Oubliés uniquement</button>
+                            <button id="btn-export-trolleys" class="btn-secondary" style="background:#059669; color:#fff; font-weight:700;">📊 Exporter Excel</button>
+                            <button id="btn-add-trolley" class="btn-primary admin-only-btn" style="background:#2563eb;">➕ Ajouter un Chariot</button>
+                            <button id="btn-reset-trolleys" class="btn-secondary admin-only-btn">Réinitialiser Tout</button>
+                            <button id="btn-save-trolleys" class="btn-primary">Enregistrer Suivi Chariots</button>
+                        </div>
+                    </div>
+
+                    <!-- Trolleys Grid (42 Carts) -->
+                    <div class="trolleys-grid-container" id="trolleys-grid">
+                        <!-- Generated via JS for 42 Trolleys -->
+                    </div>
+                </div>
+            </main>
+        </section>
+
+        <!-- =======================
+             ADMIN VIEW
+        ======================== -->
+        <section id="view-admin" class="view">
+            <header class="app-header glass-header admin-header-style">
+                <div class="header-left">
+                    <button id="btn-admin-back" class="btn-icon" title="Retour au Dashboard">←</button>
+                    <span class="avatar admin-avatar" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; font-weight:bold;">👑</span>
+                    <div class="user-info">
+                        <span class="user-name">Administrateur</span>
+                        <span style="font-size:0.75rem; color:#fde68a; font-weight:600;">⭐ Session Administrateur • Serre</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <span id="admin-network-badge" class="network-badge online">🟢 Session Admin Active</span>
+                </div>
+            </header>
+
+            <main class="admin-content">
+                <!-- Admin Header KPI Overview -->
+                <div class="admin-kpi-grid">
+                    <div class="kpi-card glass-panel">
+                        <div class="kpi-icon">📋</div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Total Pointages</span>
+                            <span class="kpi-value" id="admin-kpi-total">0</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card glass-panel">
+                        <div class="kpi-icon">⚡</div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Fait Aujourd'hui</span>
+                            <span class="kpi-value" id="admin-kpi-today">0</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card glass-panel">
+                        <div class="kpi-icon">👤</div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Superviseurs</span>
+                            <span class="kpi-value" id="admin-kpi-sups">0</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card glass-panel warning-kpi">
+                        <div class="kpi-icon">🔍</div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Brouillons WIP</span>
+                            <span class="kpi-value" id="admin-kpi-wip">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Navigation Sub-Tabs -->
+                <div class="dashboard-tabs" style="margin-bottom: 16px;">
+                    <button id="admin-tab-btn-history" class="tab-btn active">
+                        <span>📋</span> Pointages & Cartes Superviseurs
+                    </button>
+                    <button id="admin-tab-btn-trolleys" class="tab-btn">
+                        <span>🛺</span> Gestion Flotte Chariots (42 Trolleys)
+                    </button>
+                    <button id="admin-tab-btn-settings" class="tab-btn">
+                        <span>⚙️</span> Paramètres & Superviseurs
+                    </button>
+                </div>
+
+                <!-- TAB 1: POINTAGES & CARTE SUPERVISEURS -->
+                <div id="admin-tab-content-history" class="admin-tab-pane active">
+                    <div class="admin-card glass-panel" style="margin-bottom: 20px;">
+                        <div class="admin-toolbar" style="flex-wrap: wrap; gap: 12px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="font-size:1.2rem;">📊</span>
+                                <h3 style="margin:0;">Suivi & Cartes de Pointage Superviseurs</h3>
+                            </div>
+                            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                                <button id="btn-sync-all" class="btn-secondary" style="background:#2563eb; color:#fff; font-weight:600; padding:10px 16px;">🔄 Récupérer & Synchroniser</button>
+                                <button id="btn-export-data" class="btn-secondary" style="background:#059669; color:#fff; font-weight:700; padding:10px 16px;">📊 Exporter Excel (.xls)</button>
+                            </div>
+                        </div>
+
+                        <!-- Filter Controls -->
+                        <div class="admin-filters-bar glass-panel" style="display:flex; gap:12px; margin-bottom:16px; padding:12px; flex-wrap:wrap; background:rgba(255,255,255,0.6); align-items:flex-end;">
+                            <div class="input-group" style="flex:1; min-width:200px;">
+                                <label for="admin-filter-sup">Filtrer par Superviseur</label>
+                                <div style="display:flex; gap:6px;">
+                                    <select id="admin-filter-sup" class="custom-select" style="flex:1;">
+                                        <option value="ALL">👥 Tous les Superviseurs</option>
+                                    </select>
+                                    <button id="btn-quick-delete-filter-sup" class="btn-secondary" title="Supprimer le superviseur actuellement sélectionné" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; padding:0 12px; font-weight:700;">🗑️</button>
+                                </div>
+                            </div>
+                            <div class="input-group" style="flex:1; min-width:160px;">
+                                <label for="admin-filter-date">Période / Date</label>
+                                <select id="admin-filter-date" class="custom-select">
+                                    <option value="ALL">📅 Tous les pointages</option>
+                                    <option value="TODAY" selected>⚡ Aujourd'hui uniquement</option>
+                                    <option value="WEEK">🗓️ Cette Semaine</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="flex:2; min-width:220px;">
+                                <label for="admin-search-input">Recherche Rapide</label>
+                                <input type="text" id="admin-search-input" class="custom-input" placeholder="🔍 Rechercher par tâche, superviseur, note...">
+                            </div>
+                        </div>
+
+                        <div id="admin-wip-recovery-alert" style="display:none; margin:12px 0 16px; padding:14px 18px; background:rgba(234,179,8,0.18); border:1.5px solid #eab308; border-radius:12px; color:#fef08a;"></div>
+                        
+                        <!-- Per-supervisor sections generated by JS -->
+                        <div id="admin-history-container"></div>
+                        <div id="admin-empty-state" class="empty-state">
+                            <p>Aucun pointage trouvé pour ces filtres.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: GESTION FLOTTE CHARIOTS (ADMIN DESK) -->
+                <div id="admin-tab-content-trolleys" class="admin-tab-pane" style="display:none;">
+                    <div id="admin-trolleys-wrapper">
+                        <!-- Trolley view container will render inside here when tab selected -->
+                    </div>
+                </div>
+
+                <!-- TAB 3: SETTINGS & SUPERVISOR MANAGEMENT -->
+                <div id="admin-tab-content-settings" class="admin-tab-pane" style="display:none;">
+                    <div class="admin-card glass-panel" id="admin-settings">
+                        <div class="admin-toolbar">
+                            <h3>⚙️ Paramètres de la Serre & Gestion des Superviseurs</h3>
+                        </div>
+                        
+                        <div class="settings-grid">
+                            <div class="settings-group">
+                                <h4>Profils & Mot de Passe Administrateur</h4>
+                                <div class="input-row" style="flex-wrap: wrap;">
+                                    <div class="input-group">
+                                        <label>Nom Superviseur 1</label>
+                                        <input type="text" id="setting-sup1-name" value="Supervisor 1" class="custom-input">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>🔑 Mot de Passe Superviseur 1</label>
+                                        <input type="text" id="setting-sup1-pwd" value="" class="custom-input" placeholder="Définir un mot de passe">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Nom Superviseur 2</label>
+                                        <input type="text" id="setting-sup2-name" value="Supervisor 2" class="custom-input">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>🔑 Mot de Passe Superviseur 2</label>
+                                        <input type="text" id="setting-sup2-pwd" value="" class="custom-input" placeholder="Définir un mot de passe">
+                                    </div>
+                                    <div class="input-group" style="flex-basis:100%;">
+                                        <label>🔒 Mot de Passe Administrateur</label>
+                                        <input type="text" id="setting-admin-pwd" value="1234" class="custom-input">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dedicated Supervisor Accounts Deletion Section -->
+                            <div class="settings-group" style="border: 1.5px solid rgba(239, 68, 68, 0.5); background: rgba(254, 242, 242, 0.35); padding: 16px; border-radius: 12px;">
+                                <h4 style="color:#dc2626; font-size:1rem; margin-bottom:6px;">🗑️ Gestion & Purge des Superviseurs Enregistrés</h4>
+                                <p style="font-size:0.85rem; color:#991b1b; margin-bottom:14px; font-weight:500;">L'administrateur peut réinitialiser ou supprimer définitivement n'importe quel superviseur de la liste et effacer son historique de pointages et brouillons BDD.</p>
+                                <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+                                    <div class="input-group" style="flex:1; min-width:200px;">
+                                        <label style="color:#991b1b; font-weight:700;">Sélectionner le Superviseur à Supprimer</label>
+                                        <select id="select-delete-sup" class="custom-select" style="border-color:#fca5a5; background:#ffffff;">
+                                            <!-- Dynamically populated -->
+                                        </select>
+                                    </div>
+                                    <button id="btn-delete-selected-sup" class="btn-secondary" style="background:#dc2626; color:#fff; border:none; padding:12px 18px; font-weight:700; border-radius:8px;">
+                                        🗑️ Supprimer ce Superviseur & Ses Données
+                                    </button>
+                                </div>
+                                <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+                                    <button id="btn-delete-sup1" class="btn-secondary" style="background:#ef4444; color:#fff; border:none; padding:8px 14px; font-size:0.8rem; font-weight:600;">Réinitialiser Prof. Superviseur 1</button>
+                                    <button id="btn-delete-sup2" class="btn-secondary" style="background:#ef4444; color:#fff; border:none; padding:8px 14px; font-size:0.8rem; font-weight:600;">Réinitialiser Prof. Superviseur 2</button>
+                                </div>
+                            </div>
+
+                            <div class="settings-group">
+                                <h4>Côté Gauche (Nombre de Lignes)</h4>
+                                <div class="input-row">
+                                    <div class="input-group">
+                                        <label>De la ligne</label>
+                                        <input type="number" id="setting-g-start" value="1" min="1" class="custom-input">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Jusqu'à</label>
+                                        <input type="number" id="setting-g-end" value="140" min="1" class="custom-input">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-group">
+                                <h4>Côté Droit (Nombre de Lignes)</h4>
+                                <div class="input-row">
+                                    <div class="input-group">
+                                        <label>De la ligne</label>
+                                        <input type="number" id="setting-d-start" value="1" min="1" class="custom-input">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Jusqu'à</label>
+                                        <input type="number" id="setting-d-end" value="140" min="1" class="custom-input">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top:20px; text-align:right;">
+                            <button id="btn-save-settings" class="btn-secondary" style="background:var(--primary-light); color:#fff; border:none; padding:12px 24px; font-weight:700;">Sauvegarder Configuration</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </section>
+        
+        <!-- Supervisor Password Modal -->
+        <div id="modal-sup-password" class="modal-overlay">
+            <div class="modal-container sup-pwd-modal">
+                <div class="modal-handle"></div>
+                <div class="sup-pwd-content">
+                    <div class="sup-pwd-icon">🔐</div>
+                    <h3 id="sup-pwd-title">Authentification</h3>
+                    <p id="sup-pwd-subtitle" class="sup-pwd-sub">Entrez votre mot de passe pour continuer</p>
+                    <input type="password" id="sup-pwd-input" class="custom-input sup-pwd-field" placeholder="Mot de passe" autocomplete="off">
+                    <div id="sup-pwd-error" class="sup-pwd-error" style="display:none;">Mot de passe incorrect</div>
+                    <div class="sup-pwd-actions">
+                        <button id="btn-sup-pwd-cancel" class="btn-secondary">Annuler</button>
+                        <button id="btn-sup-pwd-confirm" class="btn-primary sup-pwd-confirm">Se Connecter</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Password Modal -->
+        <div id="modal-admin-password" class="modal-overlay">
+            <div class="modal-container sup-pwd-modal">
+                <div class="modal-handle"></div>
+                <div class="sup-pwd-content">
+                    <div class="sup-pwd-icon">⚙️</div>
+                    <h3>Administration</h3>
+                    <p class="sup-pwd-sub">Entrez le mot de passe Administrateur</p>
+                    <input type="password" id="admin-pwd-input" class="custom-input sup-pwd-field" placeholder="Mot de passe" autocomplete="off">
+                    <div id="admin-pwd-error" class="sup-pwd-error" style="display:none;">Mot de passe incorrect</div>
+                    <div class="sup-pwd-actions">
+                        <button id="btn-admin-pwd-cancel" class="btn-secondary">Annuler</button>
+                        <button id="btn-admin-pwd-confirm" class="btn-primary sup-pwd-confirm">Accéder</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast">Action effectuée avec succès !</div>
+
+        <!-- =======================
+             ADMIN DETAIL MAP MODAL
+        ======================== -->
+        <div id="modal-map-detail" class="modal-overlay">
+            <div class="modal-container">
+                <div class="modal-handle"></div>
+                <div class="modal-header">
+                    <h3 id="modal-title">Détail du Pointage</h3>
+                    <button id="btn-close-modal" class="btn-icon" style="font-size:1.6rem; color:var(--text-muted);">×</button>
+                </div>
+                <div class="modal-meta" id="modal-meta-badges">
+                    <!-- Populated by JS: supervisor, week, task, progress badges -->
+                </div>
+                <div class="modal-body">
+                    <div class="greenhouse-map-wrapper">
+                        <div class="map-stats-header">
+                            <div class="grid-stats">Côté Gauche: <span id="modal-gauche-count">0</span></div>
+                            <div class="grid-stats">Côté Droit: <span id="modal-droit-count">0</span></div>
+                        </div>
+                        <div class="greenhouse-map">
+                            <div class="map-side" id="modal-grid-gauche"></div>
+                            <div class="map-corridor"></div>
+                            <div class="map-side" id="modal-grid-droit"></div>
+                        </div>
+                    </div>
+                    <div id="modal-remarks-wrap" class="modal-remarks" style="display:none;">
+                        <strong>Remarques : </strong>
+                        <span id="modal-remarks-text"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Supabase JS v2 CDN (with unpkg fallback for mobile networks) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2';"></script>
+    <!-- SheetJS (xlsx) for native Excel OpenXML .xlsx files -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js';"></script>
+    <script src="supabase.js?v=2.2"></script>
+    <script src="app.js?v=2.2"></script>
+</body>
+</html>
