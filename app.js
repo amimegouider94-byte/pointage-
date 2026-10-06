@@ -651,7 +651,33 @@ async function checkAndRecoverWip() {
                         }
                     }
 
+                    if (appState.week) {
+                        const isBiweekly = appState.week.includes('-');
+                        if (periodModeSelect) periodModeSelect.value = isBiweekly ? '2w' : '1w';
+                        populateWeeks();
+                        let hasOpt = Array.from(weekSelect.options).some(o => o.value === appState.week);
+                        if (!hasOpt) {
+                            const opt = document.createElement('option');
+                            opt.value = appState.week;
+                            opt.textContent = appState.week;
+                            weekSelect.appendChild(opt);
+                        }
+                        weekSelect.value = appState.week;
+                    }
+
+                    if (taskSelect && appState.task) {
+                        let hasOpt = Array.from(taskSelect.options).some(o => o.value === appState.task);
+                        if (!hasOpt) {
+                            const opt = document.createElement('option');
+                            opt.value = appState.task;
+                            opt.textContent = appState.task;
+                            taskSelect.appendChild(opt);
+                        }
+                        taskSelect.value = appState.task;
+                    }
+
                     generateGrids(true); // Preserve recovered state!
+                    updateProgress();
                     showToast('Pointages récupérés et affichés sur la carte ✓');
                     renderAdminTable();
                 });
@@ -678,8 +704,39 @@ async function checkAndRecoverWip() {
                 userAvatarEl.textContent = initials || 'S1';
             }
 
-            if (weekSelect) weekSelect.value = appState.week;
-            if (taskSelect) taskSelect.value = appState.task;
+            // Sync period mode (1w vs 2w) & week select dropdown
+            const periodModeSelect = document.getElementById('period-mode-select');
+            if (sub.week) {
+                const isBiweekly = sub.week.includes('-');
+                if (periodModeSelect) {
+                    periodModeSelect.value = isBiweekly ? '2w' : '1w';
+                }
+                populateWeeks();
+
+                let hasOpt = Array.from(weekSelect.options).some(o => o.value === sub.week);
+                if (!hasOpt) {
+                    const opt = document.createElement('option');
+                    opt.value = sub.week;
+                    opt.textContent = sub.week.includes('-') ? `Semaines ${sub.week.replace(/W/g,'').replace('-',' & ')} (${sub.week})` : `Semaine ${sub.week.replace('W','')} (${sub.week})`;
+                    weekSelect.appendChild(opt);
+                }
+                weekSelect.value = sub.week;
+                appState.week = sub.week;
+            }
+
+            // Sync task select dropdown
+            if (taskSelect && sub.task) {
+                let hasOpt = Array.from(taskSelect.options).some(o => o.value === sub.task);
+                if (!hasOpt) {
+                    const opt = document.createElement('option');
+                    opt.value = sub.task;
+                    opt.textContent = sub.task;
+                    taskSelect.appendChild(opt);
+                }
+                taskSelect.value = sub.task;
+                appState.task = sub.task;
+            }
+
             if (remarksInput) remarksInput.value = appState.remarks;
 
             generateGrids(true); // preserveState = true!
